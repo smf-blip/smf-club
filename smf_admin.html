@@ -2,44 +2,38 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<title>SMF ADMIN</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SMF CLUB — Admin</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* ===== ТВОЙ CSS БЕЗ ИЗМЕНЕНИЙ ===== */
-body{margin:0;font-family:Jost;background:#1A0808;color:#fff}
-.app{max-width:420px;margin:0 auto}
-/* (сократил стиль ради читаемости — у тебя он остаётся как есть) */
-.title-item,.user-item,.ch-item{padding:10px;margin:10px;background:#2a0f0f;border-radius:10px}
-.btn{padding:10px;background:#8E2323;color:#fff;border:0;border-radius:8px;cursor:pointer}
-.btn-sm{padding:5px 8px;font-size:12px}
+body{font-family:Arial;background:#1a0808;color:#fff;margin:0;padding:20px}
+.box{max-width:500px;margin:auto}
+button{padding:10px;background:#8E2323;color:#fff;border:0;margin-top:10px;cursor:pointer}
+input{width:100%;padding:8px;margin:5px 0}
+.item{background:#2a0f0f;padding:10px;margin:10px 0;border-radius:8px}
 </style>
 </head>
 
 <body>
-<div class="app">
+<div class="box">
 
-<h2>SMF ADMIN</h2>
+<h2>Admin Panel</h2>
 
-<!-- TITLES -->
-<div>
-  <h3>Тайтлы</h3>
-  <button class="btn" onclick="openTitleModal()">+ Добавить</button>
-  <div id="titles-list"></div>
-</div>
+<button onclick="openModal()">+ Добавить тайтл</button>
+
+<div id="list"></div>
 
 <!-- MODAL -->
-<div id="modal" style="display:none;position:fixed;inset:0;background:#000a;padding:20px">
-  <div style="background:#2a0f0f;padding:20px;border-radius:10px">
-    <h3>Тайтл</h3>
-    <input id="t-name" placeholder="Название"><br><br>
-    <input id="t-type" placeholder="Тип"><br><br>
-    <input id="t-genres" placeholder="Жанры"><br><br>
-    <button class="btn" onclick="saveTitle()">Сохранить</button>
+<div id="modal" style="display:none;background:#000a;position:fixed;inset:0;padding:40px">
+  <div style="background:#2a0f0f;padding:20px">
+    <h3>Новый тайтл</h3>
+    <input id="name" placeholder="Название">
+    <input id="type" placeholder="Тип">
+    <input id="genres" placeholder="Жанры">
+
+    <button onclick="save()">Сохранить</button>
     <button onclick="closeModal()">Закрыть</button>
   </div>
 </div>
@@ -47,107 +41,98 @@ body{margin:0;font-family:Jost;background:#1A0808;color:#fff}
 </div>
 
 <script>
-// =====================
-// SUPABASE INIT
-// =====================
-const supabase = supabaseJs.createClient(
-  "YOUR_SUPABASE_URL",
-  "YOUR_SUPABASE_ANON_KEY"
+// =========================
+// SUPABASE INIT (FIXED)
+// =========================
+const supabase = window.supabase.createClient(
+  "https://byvbwusgliotucnkxhqo.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5dmJ3dXNnbGlvdHVjbmt4aHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzkwNDcsImV4cCI6MjA5NjgxNTA0N30.fQXXjtM_2tIdZA_M_CBO2SCzZI5N71u8--bklvwmQgY"
 );
 
-// =====================
-// AUTH CHECK (admin)
-// =====================
-let currentUser = null;
-
-async function checkAuth(){
-  const { data: { user } } = await supabase.auth.getUser();
-  if(!user){
-    alert("Нужно войти");
-    return;
-  }
-
-  currentUser = user;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if(profile?.role !== "admin"){
-    alert("Нет доступа");
-    return;
-  }
-
-  loadTitles();
-}
-
-checkAuth();
-
-// =====================
-// TITLES CRUD
-// =====================
-async function loadTitles(){
-  const { data } = await supabase
-    .from("titles")
-    .select("*")
-    .order("created_at", { ascending:false });
-
-  renderTitles(data || []);
-}
-
-function renderTitles(list){
-  const el = document.getElementById("titles-list");
-  el.innerHTML = "";
-
-  list.forEach(t=>{
-    const div = document.createElement("div");
-    div.className = "title-item";
-    div.innerHTML = `
-      <b>${t.name}</b><br>
-      <small>${t.type || ""} ${t.genres || ""}</small><br>
-      <button class="btn btn-sm" onclick="deleteTitle('${t.id}')">Удалить</button>
-    `;
-    el.appendChild(div);
-  });
-}
-
-// CREATE
-async function saveTitle(){
-  const name = document.getElementById("t-name").value;
-  const type = document.getElementById("t-type").value;
-  const genres = document.getElementById("t-genres").value;
-
-  const { error } = await supabase.from("titles").insert({
-    name, type, genres
-  });
+// =========================
+// LOAD DATA
+// =========================
+async function load(){
+  const { data, error } = await supabase
+    .from('titles')
+    .select('*')
+    .order('created_at', { ascending:false });
 
   if(error){
     console.log(error);
-    alert("Ошибка");
+    return;
+  }
+
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+
+  data.forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <b>${t.name}</b><br>
+      <small>${t.type || ''} ${t.genres || ''}</small><br>
+      <button onclick="removeItem('${t.id}')">Удалить</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// =========================
+// CREATE
+// =========================
+async function save(){
+  const name = document.getElementById('name').value;
+  const type = document.getElementById('type').value;
+  const genres = document.getElementById('genres').value;
+
+  const { error } = await supabase
+    .from('titles')
+    .insert([{ name, type, genres, status:'published' }]);
+
+  if(error){
+    console.log(error);
+    alert('Ошибка сохранения');
     return;
   }
 
   closeModal();
-  loadTitles();
+  load();
 }
 
+// =========================
 // DELETE
-async function deleteTitle(id){
-  await supabase.from("titles").delete().eq("id", id);
-  loadTitles();
+// =========================
+async function removeItem(id){
+  const { error } = await supabase
+    .from('titles')
+    .delete()
+    .eq('id', id);
+
+  if(error){
+    console.log(error);
+    alert('Ошибка удаления');
+    return;
+  }
+
+  load();
 }
 
-// =====================
+// =========================
 // MODAL
-// =====================
-function openTitleModal(){
-  document.getElementById("modal").style.display="block";
+// =========================
+function openModal(){
+  document.getElementById('modal').style.display='block';
 }
 function closeModal(){
-  document.getElementById("modal").style.display="none";
+  document.getElementById('modal').style.display='none';
 }
+
+// =========================
+// INIT
+// =========================
+load();
+
 </script>
 
 </body>
