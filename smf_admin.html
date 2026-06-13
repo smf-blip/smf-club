@@ -2,138 +2,411 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>SMF ADMIN</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SMF CLUB — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
-body{font-family:Arial;background:#1a0808;color:#fff;margin:0;padding:20px}
-.box{max-width:500px;margin:auto}
-button{padding:10px;background:#8E2323;color:#fff;border:0;margin-top:10px;cursor:pointer}
-input{width:100%;padding:8px;margin:5px 0}
-.item{background:#2a0f0f;padding:10px;margin:10px 0;border-radius:8px}
+:root{--bg:#B97868;--red:#8E2323;--burg:#4A1515;--burg2:#3A0F0F;--ivory:#FFF7F4;--ivory2:#F1D7CF;--card:#E0B0A1;--shadow:rgba(74,21,21,0.35);--green:#4A8A5A;--yellow:#A07830;--err:#E05050}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#1A0808;min-height:100vh;font-family:'Jost',sans-serif;display:flex;justify-content:center}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
+
+.app{width:100%;max-width:390px;min-height:100vh;position:relative;z-index:1;background:var(--burg2)}
+
+/* ── HEADER ── */
+.hdr{padding:13px 16px 11px;background:var(--burg);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,247,244,.07);position:sticky;top:0;z-index:50}
+.hdr-brand{display:flex;align-items:center;gap:9px}
+.hdr-logo{width:34px;height:34px;border-radius:50%;border:1.5px solid #C4856B;object-fit:cover}
+.hdr-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--ivory);letter-spacing:.1em}
+.hdr-badge{font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;background:var(--red);color:var(--ivory);padding:2px 7px;border-radius:4px;margin-left:2px}
+.hdr-r button{background:none;border:none;cursor:pointer;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(241,215,207,.4);font-family:'Jost',sans-serif}
+
+/* ── NAV TABS ── */
+.anav{display:flex;overflow-x:auto;background:var(--burg);border-bottom:1px solid rgba(74,21,21,.4);scrollbar-width:none;padding:0 8px}
+.anav::-webkit-scrollbar{display:none}
+.atab{padding:10px 12px;font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:rgba(241,215,207,.45);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s}
+.atab.on{color:var(--ivory);border-bottom:2px solid var(--red);text-shadow:0 0 10px rgba(142,35,35,.5)}
+
+/* ── SCREENS ── */
+.asc{display:none;padding:16px;animation:fu .3s ease both}
+.asc.active{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ── STATS ROW ── */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-card{background:rgba(74,21,21,.4);border:1px solid rgba(255,247,244,.07);border-radius:14px;padding:14px 16px}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:var(--ivory);line-height:1}
+.stat-lbl{font-size:10px;font-weight:300;letter-spacing:.1em;text-transform:uppercase;color:rgba(241,215,207,.45);margin-top:4px}
+.stat-delta{font-size:11px;color:#50A878;margin-top:6px}
+
+/* ── SECTION TITLE ── */
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--ivory);letter-spacing:.05em;margin-bottom:14px}
+
+/* ── BUTTONS ── */
+.btn{padding:12px 18px;background:var(--red);color:var(--ivory);border:none;border-radius:10px;font-family:'Jost',sans-serif;font-size:11px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;box-shadow:0 3px 14px rgba(142,35,35,.4);transition:box-shadow .2s;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{box-shadow:0 3px 22px rgba(142,35,35,.6)}
+.btn-w{width:100%;justify-content:center}
+.btn-out{padding:10px 16px;background:none;border:1px solid rgba(255,247,244,.12);border-radius:10px;font-family:'Jost',sans-serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(241,215,207,.45);cursor:pointer}
+.btn-sm{padding:7px 12px;font-size:10px}
+.btn-green{background:#2A5A3A;box-shadow:0 3px 14px rgba(42,90,58,.3)}
+.btn-del{background:rgba(142,35,35,.25);border:1px solid rgba(142,35,35,.4);color:#E88080;box-shadow:none}
+
+/* ── FORM ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10px;font-weight:400;letter-spacing:.15em;text-transform:uppercase;color:rgba(241,215,207,.45);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;font-family:'Jost',sans-serif;font-size:13px;font-weight:300;background:rgba(255,247,244,.06);border:1px solid rgba(255,247,244,.1);border-radius:10px;color:var(--ivory);outline:none;transition:border .2s;-webkit-appearance:none}
+.field textarea{min-height:90px;resize:vertical;line-height:1.5}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(241,215,207,.3)}
+.field input::placeholder,.field textarea::placeholder{color:rgba(241,215,207,.2)}
+.field select option{background:#3A1A1A;color:var(--ivory)}
+
+/* UPLOAD ZONE */
+.upload-zone{border:1.5px dashed rgba(255,247,244,.15);border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;transition:border .2s;margin-bottom:14px}
+.upload-zone:hover{border-color:rgba(241,215,207,.3)}
+.upload-zone .uz-icon{font-size:28px;margin-bottom:8px}
+.upload-zone .uz-title{font-size:13px;font-weight:300;color:rgba(241,215,207,.6);margin-bottom:3px}
+.upload-zone .uz-sub{font-size:11px;color:rgba(241,215,207,.3);letter-spacing:.04em}
+.upload-zone.has-img{border-style:solid;border-color:rgba(142,35,35,.5)}
+
+/* ── TITLE LIST ── */
+.title-item{display:flex;gap:12px;align-items:center;padding:12px;background:rgba(74,21,21,.3);border:1px solid rgba(255,247,244,.06);border-radius:12px;margin-bottom:10px}
+.title-cover{width:44px;height:60px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid rgba(255,247,244,.08)}
+.title-info{flex:1;min-width:0}
+.title-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--ivory);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title-meta{font-size:10px;font-weight:300;letter-spacing:.05em;color:rgba(241,215,207,.45);margin-top:3px}
+.title-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* STATUS BADGE */
+.sbadge{display:inline-block;font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-top:5px}
+.sb-pub{background:rgba(74,138,90,.25);color:#7ACA9A}
+.sb-draft{background:rgba(160,120,48,.25);color:#D4A060}
+.sb-hide{background:rgba(142,35,35,.25);color:#E08080}
+
+/* ── USERS TABLE ── */
+.user-item{display:flex;align-items:center;gap:12px;padding:11px 12px;background:rgba(74,21,21,.3);border:1px solid rgba(255,247,244,.06);border-radius:12px;margin-bottom:8px}
+.user-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--bg),var(--red));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;font-family:'Cormorant Garamond',serif;font-weight:600;color:var(--ivory)}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:400;color:var(--ivory);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:10px;color:rgba(241,215,207,.4);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:9px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px}
+.role-admin{background:rgba(142,35,35,.3);color:#E08080}
+.role-user{background:rgba(255,247,244,.08);color:rgba(241,215,207,.5)}
+
+/* ── CHAPTERS ── */
+.ch-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(74,21,21,.3);border:1px solid rgba(255,247,244,.06);border-radius:10px;margin-bottom:8px}
+.ch-num{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:rgba(241,215,207,.35);width:32px;flex-shrink:0;text-align:center}
+.ch-info{flex:1}
+.ch-name{font-size:13px;color:var(--ivory);font-weight:300}
+.ch-meta{font-size:10px;color:rgba(241,215,207,.4);margin-top:2px}
+
+/* ── MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(20,8,8,.85);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center;z-index:200}
+.modal-bg.open{display:flex}
+.modal{background:var(--burg);border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:390px;border-top:1px solid rgba(255,247,244,.08);animation:su .3s cubic-bezier(.22,1,.36,1);max-height:90vh;overflow-y:auto}
+@keyframes su{from{transform:translateY(100%)}to{transform:none}}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--ivory);letter-spacing:.05em;margin-bottom:18px}
+.modal-close{float:right;background:none;border:none;cursor:pointer;color:rgba(241,215,207,.4);font-size:18px;margin-top:2px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--burg);border:1px solid rgba(255,247,244,.1);border-radius:10px;padding:12px 20px;font-size:12px;letter-spacing:.06em;color:var(--ivory);z-index:500;transition:transform .3s cubic-bezier(.22,1,.36,1);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── SEARCH IN ADMIN ── */
+.asrch{display:flex;gap:8px;margin-bottom:16px}
+.asrch input{flex:1;padding:10px 13px;font-family:'Jost',sans-serif;font-size:12px;font-weight:300;background:rgba(255,247,244,.06);border:1px solid rgba(255,247,244,.1);border-radius:10px;color:var(--ivory);outline:none}
+.asrch input::placeholder{color:rgba(241,215,207,.2)}
+
+/* ── DIVIDER ── */
+.adiv{height:1px;background:rgba(74,21,21,.4);margin:18px 0}
+
+/* ── TOGGLE ── */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(74,21,21,.3)}
+.toggle-lbl{font-size:13px;font-weight:300;color:var(--ivory2)}
+.toggle-sub{font-size:10px;color:rgba(241,215,207,.35);margin-top:2px;letter-spacing:.04em}
+.tgl{width:40px;height:22px;border-radius:11px;background:rgba(255,247,244,.1);cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tgl.on{background:var(--red)}
+.tgl::after{content:'';position:absolute;width:18px;height:18px;background:var(--ivory);border-radius:50%;top:2px;left:2px;transition:left .2s}
+.tgl.on::after{left:20px}
 </style>
 </head>
-
 <body>
-<div class="box">
+<div class="app">
 
-<h2>Admin Panel</h2>
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="hdr-brand">
+      <img class="hdr-logo" src="data:image/jpeg;base64,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" alt="logo">
+      <span class="hdr-name">SMF CLUB</span>
+      <span class="hdr-badge">Admin</span>
+    </div>
+    <div class="hdr-r"><button onclick="window.location.href='smf_club_full.html'">← Сайт</button></div>
+  </div>
 
-<button onclick="openModal()">+ Добавить тайтл</button>
+  <!-- NAV -->
+  <div class="anav">
+    <div class="atab on" onclick="goTab('t-dash',this)">Обзор</div>
+    <div class="atab" onclick="goTab('t-titles',this)">Тайтлы</div>
+    <div class="atab" onclick="goTab('t-chapters',this)">Главы</div>
+    <div class="atab" onclick="goTab('t-users',this)">Пользователи</div>
+    <div class="atab" onclick="goTab('t-settings',this)">Настройки</div>
+  </div>
 
-<div id="list"></div>
+  <!-- ══ DASHBOARD ══ -->
+  <div class="asc active" id="t-dash">
+    <div class="stats">
+      <div class="stat-card"><div class="stat-val">247</div><div class="stat-lbl">Пользователей</div><div class="stat-delta">↑ +12 за неделю</div></div>
+      <div class="stat-card"><div class="stat-val">38</div><div class="stat-lbl">Тайтлов</div><div class="stat-delta">↑ +3 за месяц</div></div>
+      <div class="stat-card"><div class="stat-val">1 240</div><div class="stat-lbl">Глав</div><div class="stat-delta">↑ +47 за неделю</div></div>
+      <div class="stat-card"><div class="stat-val">18 400</div><div class="stat-lbl">Прочтений</div><div class="stat-delta">↑ +2.1k за день</div></div>
+    </div>
 
-<!-- MODAL -->
-<div id="modal" style="display:none;background:#000a;position:fixed;inset:0;padding:40px">
-  <div style="background:#2a0f0f;padding:20px">
-    <h3>Новый тайтл</h3>
-    <input id="name" placeholder="Название">
-    <input id="type" placeholder="Тип">
-    <input id="genres" placeholder="Жанры">
+    <div class="sec-title">Быстрые действия</div>
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="btn" onclick="goTab('t-titles',null);openAddTitle()">+ Тайтл</button>
+      <button class="btn" onclick="goTab('t-chapters',null);openAddChapter()">+ Глава</button>
+      <button class="btn btn-out" onclick="goTab('t-users',null)">Пользователи</button>
+    </div>
 
-    <button onclick="save()">Сохранить</button>
-    <button onclick="closeModal()">Закрыть</button>
+    <div class="sec-title">Последние тайтлы</div>
+    <div class="title-item">
+      <div class="title-cover" style="background:linear-gradient(135deg,#C4856B,#8E4A3A)">🗡️</div>
+      <div class="title-info"><div class="title-name">Соло Левелинг</div><div class="title-meta">Манхва · 200 глав</div><span class="sbadge sb-pub">Опубликован</span></div>
+      <div class="title-actions"><button class="btn btn-sm" onclick="openEditTitle('Соло Левелинг')">✎</button></div>
+    </div>
+    <div class="title-item">
+      <div class="title-cover" style="background:linear-gradient(135deg,#A06878,#5A2A3A)">🌸</div>
+      <div class="title-info"><div class="title-name">Возрождение</div><div class="title-meta">Новелла · 89 глав</div><span class="sbadge sb-draft">Черновик</span></div>
+      <div class="title-actions"><button class="btn btn-sm" onclick="openEditTitle('Возрождение')">✎</button></div>
+    </div>
+    <div class="title-item">
+      <div class="title-cover" style="background:linear-gradient(135deg,#7A5878,#3A2040)">🌙</div>
+      <div class="title-info"><div class="title-name">Тёмный Консорт</div><div class="title-meta">Маньхуа · 210 глав</div><span class="sbadge sb-pub">Опубликован</span></div>
+      <div class="title-actions"><button class="btn btn-sm" onclick="openEditTitle('Тёмный Консорт')">✎</button></div>
+    </div>
+  </div>
+
+  <!-- ══ TITLES ══ -->
+  <div class="asc" id="t-titles">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="sec-title" style="margin:0">Тайтлы</div>
+      <button class="btn btn-sm" onclick="openAddTitle()">+ Добавить</button>
+    </div>
+    <div class="asrch"><input type="text" placeholder="Поиск тайтла..." oninput="filterTitles(this.value)"><button class="btn btn-out" style="padding:10px 14px;font-size:10px">Фильтр</button></div>
+
+    <div id="titles-list">
+      <div class="title-item" data-name="Соло Левелинг">
+        <div class="title-cover" style="background:linear-gradient(135deg,#C4856B,#8E4A3A)">🗡️</div>
+        <div class="title-info"><div class="title-name">Соло Левелинг</div><div class="title-meta">Манхва · 200 гл. · Фэнтези</div><span class="sbadge sb-pub">Опубликован</span></div>
+        <div class="title-actions"><button class="btn btn-sm" onclick="openEditTitle('Соло Левелинг')">✎</button><button class="btn btn-sm btn-del" onclick="delTitle(this)">✕</button></div>
+      </div>
+      <div class="title-item" data-name="Возрождение">
+        <div class="title-cover" style="background:linear-gradient(135deg,#A06878,#5A2A3A)">🌸</div>
+        <div class="title-info"><div class="title-name">Возрождение</div><div class="title-meta">Новелла · 89 гл. · Романтика</div><span class="sbadge sb-draft">Черновик</span></div>
+        <div class="title-actions"><button class="btn btn-sm" onclick="openEditTitle('Возрождение')">✎</button><button class="btn btn-sm btn-del" onclick="delTitle(this)">✕</button></div>
+      </div>
+      <div class="title-item" data-name="Хроники Дракона">
+        <div class="title-cover" style="background:linear-gradient(135deg,#B07858,#6A3820)">🐉</div>
+        <div class="title-info"><div class="title-name">Хроники Дракона</div><div class="title-meta">Манхва · 134 гл. · Экшн</div><span class="sbadge sb-pub">Опубликован</span></div>
+        <div class="title-actions"><button class="btn btn-sm" onclick="openEditTitle('Хроники Дракона')">✎</button><button class="btn btn-sm btn-del" onclick="delTitle(this)">✕</button></div>
+      </div>
+      <div class="title-item" data-name="Тёмный Консорт">
+        <div class="title-cover" style="background:linear-gradient(135deg,#7A5878,#3A2040)">🌙</div>
+        <div class="title-info"><div class="title-name">Тёмный Консорт</div><div class="title-meta">Маньхуа · 210 гл. · Романтика 18+</div><span class="sbadge sb-pub">Опубликован</span></div>
+        <div class="title-actions"><button class="btn btn-sm" onclick="openEditTitle('Тёмный Консорт')">✎</button><button class="btn btn-sm btn-del" onclick="delTitle(this)">✕</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CHAPTERS ══ -->
+  <div class="asc" id="t-chapters">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="sec-title" style="margin:0">Главы</div>
+      <button class="btn btn-sm" onclick="openAddChapter()">+ Добавить</button>
+    </div>
+    <div class="field"><select onchange="loadChapters(this.value)">
+      <option>Соло Левелинг</option>
+      <option>Возрождение</option>
+      <option>Хроники Дракона</option>
+      <option>Тёмный Консорт</option>
+    </select></div>
+
+    <div id="chapters-list">
+      <div class="ch-item"><div class="ch-num">131</div><div class="ch-info"><div class="ch-name">Пробуждение</div><div class="ch-meta">Добавлена 3 дня назад · 12 страниц</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="openEditChapter(131)">✎</button><button class="btn btn-sm btn-del" onclick="delChapter(this)">✕</button></div></div>
+      <div class="ch-item"><div class="ch-num">130</div><div class="ch-info"><div class="ch-name">Последний бой</div><div class="ch-meta">Добавлена неделю назад · 18 страниц</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="openEditChapter(130)">✎</button><button class="btn btn-sm btn-del" onclick="delChapter(this)">✕</button></div></div>
+      <div class="ch-item"><div class="ch-num">129</div><div class="ch-info"><div class="ch-name">Тень</div><div class="ch-meta">Добавлена неделю назад · 15 страниц</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="openEditChapter(129)">✎</button><button class="btn btn-sm btn-del" onclick="delChapter(this)">✕</button></div></div>
+      <div class="ch-item"><div class="ch-num">128</div><div class="ch-info"><div class="ch-name">Ловушка</div><div class="ch-meta">Добавлена 2 недели назад · 14 страниц</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="openEditChapter(128)">✎</button><button class="btn btn-sm btn-del" onclick="delChapter(this)">✕</button></div></div>
+    </div>
+  </div>
+
+  <!-- ══ USERS ══ -->
+  <div class="asc" id="t-users">
+    <div class="sec-title">Пользователи</div>
+    <div class="asrch"><input type="text" placeholder="Поиск по имени или email..." oninput="filterUsers(this.value)"></div>
+    <div id="users-list">
+      <div class="user-item" data-name="dark_reader">
+        <div class="user-av">D</div>
+        <div class="user-info"><div class="user-name">dark_reader</div><div class="user-email">reader@mail.com</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <span class="user-role role-user">User</span>
+          <button class="btn btn-sm btn-del" style="font-size:9px;padding:4px 8px" onclick="banUser(this)">Бан</button>
+        </div>
+      </div>
+      <div class="user-item" data-name="moonlight">
+        <div class="user-av">M</div>
+        <div class="user-info"><div class="user-name">moonlight</div><div class="user-email">moon@gmail.com</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <span class="user-role role-user">User</span>
+          <button class="btn btn-sm btn-del" style="font-size:9px;padding:4px 8px" onclick="banUser(this)">Бан</button>
+        </div>
+      </div>
+      <div class="user-item" data-name="admin">
+        <div class="user-av" style="background:linear-gradient(135deg,var(--red),var(--burg))">A</div>
+        <div class="user-info"><div class="user-name">admin</div><div class="user-email">admin@smfclub.ru</div></div>
+        <div><span class="user-role role-admin">Admin</span></div>
+      </div>
+      <div class="user-item" data-name="sakura_fan">
+        <div class="user-av">S</div>
+        <div class="user-info"><div class="user-name">sakura_fan</div><div class="user-email">sakura@yandex.ru</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          <span class="user-role role-user">User</span>
+          <button class="btn btn-sm btn-del" style="font-size:9px;padding:4px 8px" onclick="banUser(this)">Бан</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS ══ -->
+  <div class="asc" id="t-settings">
+    <div class="sec-title">Настройки сайта</div>
+
+    <div class="toggle-row"><div><div class="toggle-lbl">Режим обслуживания</div><div class="toggle-sub">Закрыть сайт для пользователей</div></div><div class="tgl" onclick="this.classList.toggle('on')"></div></div>
+    <div class="toggle-row"><div><div class="toggle-lbl">Регистрация открыта</div><div class="toggle-sub">Разрешить новых пользователей</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="toggle-row"><div><div class="toggle-lbl">Контент 18+</div><div class="toggle-sub">Показывать взрослый контент</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+    <div class="toggle-row"><div><div class="toggle-lbl">Донаты</div><div class="toggle-sub">Отображать кнопку доната</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+
+    <div class="adiv"></div>
+    <div class="sec-title">Реквизиты для доната</div>
+    <div class="field"><label>Ссылка на донат (ЮMoney / Boosty / др.)</label><input type="text" placeholder="https://boosty.to/smfclub"></div>
+    <div class="field"><label>Текст на кнопке</label><input type="text" value="Поддержать проект"></div>
+
+    <div class="adiv"></div>
+    <div class="sec-title">О клубе</div>
+    <div class="field"><label>Название</label><input type="text" value="SMF CLUB"></div>
+    <div class="field"><label>Описание</label><textarea>Закрытая библиотека манхвы, новелл и маньхуа.</textarea></div>
+
+    <button class="btn btn-w" style="margin-top:4px" onclick="showToast('Настройки сохранены ✓')">Сохранить настройки</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ══ MODAL: ДОБАВИТЬ / РЕДАКТИРОВАТЬ ТАЙТЛ ══ -->
+<div class="modal-bg" id="m-title">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('m-title')">✕</button>
+    <div class="modal-title" id="m-title-label">Новый тайтл</div>
+    <div class="upload-zone" onclick="fakeUpload(this)" id="cover-zone">
+      <div class="uz-icon">🖼️</div>
+      <div class="uz-title">Загрузить обложку</div>
+      <div class="uz-sub">JPG, PNG · до 5 МБ</div>
+    </div>
+    <div class="field"><label>Название</label><input type="text" id="t-name" placeholder="Название тайтла"></div>
+    <div class="field"><label>Тип</label><select><option>Манхва</option><option>Новелла</option><option>Маньхуа</option><option>Манга</option><option>Комикс</option></select></div>
+    <div class="field"><label>Жанры</label><input type="text" placeholder="Фэнтези, Романтика, Экшн..."></div>
+    <div class="field"><label>Описание</label><textarea placeholder="Краткое описание тайтла..."></textarea></div>
+    <div class="field"><label>Статус</label><select><option>Опубликован</option><option>Черновик</option><option>Скрыт</option></select></div>
+    <div class="field"><label>18+</label><select><option>Нет</option><option>Да</option></select></div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn" style="flex:1;justify-content:center" onclick="saveTitle()">Сохранить</button>
+      <button class="btn-out" onclick="closeModal('m-title')">Отмена</button>
+    </div>
   </div>
 </div>
 
+<!-- ══ MODAL: ДОБАВИТЬ ГЛАВУ ══ -->
+<div class="modal-bg" id="m-chapter">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('m-chapter')">✕</button>
+    <div class="modal-title" id="m-ch-label">Новая глава</div>
+    <div class="field"><label>Тайтл</label><select><option>Соло Левелинг</option><option>Возрождение</option><option>Хроники Дракона</option><option>Тёмный Консорт</option></select></div>
+    <div class="field"><label>Номер главы</label><input type="number" placeholder="132"></div>
+    <div class="field"><label>Название главы</label><input type="text" placeholder="Необязательно"></div>
+    <div class="field"><label>Тип загрузки</label><select id="ch-type" onchange="toggleChType(this.value)"><option value="img">Изображения (манхва/манга)</option><option value="text">Текст (новелла)</option></select></div>
+
+    <div id="ch-img-block">
+      <div class="upload-zone" onclick="fakeUpload(this)">
+        <div class="uz-icon">📁</div>
+        <div class="uz-title">Загрузить страницы</div>
+        <div class="uz-sub">JPG, PNG · несколько файлов · порядок важен</div>
+      </div>
+    </div>
+    <div id="ch-text-block" style="display:none">
+      <div class="field"><label>Текст главы</label><textarea placeholder="Вставьте текст главы..." style="min-height:140px"></textarea></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn" style="flex:1;justify-content:center" onclick="saveChapter()">Опубликовать</button>
+      <button class="btn-out" onclick="closeModal('m-chapter')">Отмена</button>
+    </div>
+  </div>
 </div>
 
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
-// =========================
-// SUPABASE INIT (FIXED)
-// =========================
-const supabase = window.supabase.createClient(
-  "https://byvbwusgliotucnkxhqo.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5dmJ3dXNnbGlvdHVjbmt4aHFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzkwNDcsImV4cCI6MjA5NjgxNTA0N30.fQXXjtM_2tIdZA_M_CBO2SCzZI5N71u8--bklvwmQgY"
-);
+// ── TAB NAVIGATION ──
+function goTab(id, el){
+  document.querySelectorAll('.asc').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(el){document.querySelectorAll('.atab').forEach(t=>t.classList.remove('on'));el.classList.add('on')}
+  window.scrollTo(0,0);
+}
 
-// =========================
-// LOAD DATA
-// =========================
-async function load(){
-  const { data, error } = await supabase
-    .from('titles')
-    .select('*')
-    .order('created_at', { ascending:false });
+// ── MODALS ──
+function openAddTitle(){document.getElementById('m-title-label').textContent='Новый тайтл';document.getElementById('t-name').value='';openModal('m-title')}
+function openEditTitle(name){document.getElementById('m-title-label').textContent='Редактировать тайтл';document.getElementById('t-name').value=name;openModal('m-title')}
+function openAddChapter(){openModal('m-chapter')}
+function openEditChapter(n){document.getElementById('m-ch-label').textContent='Глава '+n;openModal('m-chapter')}
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-bg').forEach(mb=>mb.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}))
 
-  if(error){
-    console.log(error);
-    return;
-  }
+// ── SAVE ACTIONS ──
+function saveTitle(){closeModal('m-title');showToast('Тайтл сохранён ✓')}
+function saveChapter(){closeModal('m-chapter');showToast('Глава опубликована ✓')}
 
-  const list = document.getElementById('list');
-  list.innerHTML = '';
+// ── DELETE ──
+function delTitle(btn){if(confirm('Удалить тайтл?')){btn.closest('.title-item').remove();showToast('Тайтл удалён')}}
+function delChapter(btn){if(confirm('Удалить главу?')){btn.closest('.ch-item').remove();showToast('Глава удалена')}}
+function banUser(btn){if(confirm('Заблокировать пользователя?')){btn.closest('.user-item').style.opacity='.4';btn.textContent='Забанен';btn.disabled=true;showToast('Пользователь заблокирован')}}
 
-  data.forEach(t=>{
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-      <b>${t.name}</b><br>
-      <small>${t.type || ''} ${t.genres || ''}</small><br>
-      <button onclick="removeItem('${t.id}')">Удалить</button>
-    `;
-    list.appendChild(div);
+// ── UPLOAD FAKE ──
+function fakeUpload(zone){zone.classList.add('has-img');zone.innerHTML='<div class="uz-icon">✅</div><div class="uz-title">Файл выбран</div><div class="uz-sub">Нажмите чтобы заменить</div>'}
+
+// ── CHAPTER TYPE ──
+function toggleChType(v){
+  document.getElementById('ch-img-block').style.display=v==='img'?'block':'none';
+  document.getElementById('ch-text-block').style.display=v==='text'?'block':'none';
+}
+
+// ── FILTERS ──
+function filterTitles(q){
+  document.querySelectorAll('#titles-list .title-item').forEach(item=>{
+    item.style.display=item.dataset.name.toLowerCase().includes(q.toLowerCase())?'flex':'none';
+  });
+}
+function filterUsers(q){
+  document.querySelectorAll('#users-list .user-item').forEach(item=>{
+    item.style.display=item.dataset.name.toLowerCase().includes(q.toLowerCase())?'flex':'none';
   });
 }
 
-// =========================
-// CREATE
-// =========================
-async function save(){
-  const name = document.getElementById('name').value;
-  const type = document.getElementById('type').value;
-  const genres = document.getElementById('genres').value;
-
-  const { error } = await supabase
-    .from('titles')
-    .insert([{ name, type, genres, status:'published' }]);
-
-  if(error){
-    console.log(error);
-    alert('Ошибка сохранения');
-    return;
-  }
-
-  closeModal();
-  load();
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
-
-// =========================
-// DELETE
-// =========================
-async function removeItem(id){
-  const { error } = await supabase
-    .from('titles')
-    .delete()
-    .eq('id', id);
-
-  if(error){
-    console.log(error);
-    alert('Ошибка удаления');
-    return;
-  }
-
-  load();
-}
-
-// =========================
-// MODAL
-// =========================
-function openModal(){
-  document.getElementById('modal').style.display='block';
-}
-function closeModal(){
-  document.getElementById('modal').style.display='none';
-}
-
-// =========================
-// INIT
-// =========================
-load();
-
 </script>
-
 </body>
 </html>
